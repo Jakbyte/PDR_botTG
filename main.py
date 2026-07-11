@@ -19,11 +19,11 @@ async def main():
     await dp.start_polling(bot)
 
 async def main():
-    await bot.delete_webhook(drop_pending_updates=True) # Тем самым, сообщения, которые были отправлены боту, когда он был выключен, при включении будут игнорироваться
+    await bot.delete_webhook(drop_pending_updates=True) 
     await dp.start_polling(bot)
 
 if __name__  == '__main__':
-    logging.basicConfig(level=logging.INFO) # Подключаем
+    logging.basicConfig(level=logging.INFO)
     print('Бот включен!')
     try:
         asyncio.run(main())  
