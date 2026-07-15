@@ -41,6 +41,13 @@ fabula_type_menu = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
+# Підменю для розділу "Фабули ПДР"
+pdr_fabula_submenu = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="☣️ Небезпечні вантажі", callback_data="open_adr_cats")],
+        [InlineKeyboardButton(text="🚦 Інші порушення ПДР", callback_data="open_other_pdr")]
+    ]
+)
 # Кнопка повернення під час ручного пошуку пункту
 pdr_search_back_menu = ReplyKeyboardMarkup(
     keyboard=[
@@ -112,11 +119,24 @@ SECTIONS_DTP = [
     "ПЕРЕШКОДА АВТОБУСУ ВІД ЗАЇЗНОЇ КИШЕНІ", "НЕ НАДАВ ПЕРЕВАГИ ПІШОХОДУ НА ПЕРЕХОДІ"
 ]
 
+SECTIONS_ADR = [
+    "Перевізні документи",
+    "Письмова інструкція",
+    "Національний дозвіл (маршрут руху)",
+    "Копія договору обов’язкового страхування відповідальності суб’єктів перевезення небезпечних вантажів на випадок настання негативних наслідків під час перевезення небезпечних вантажів",
+    "Свідоцтво про допущення транспортних засобів до перевезення визначених небезпечних вантажів",
+    "Свідоцтво ДОПНВ про підготовку водія",
+    "Вантаж допущено до перевезення вантажу",
+    "Транспортні засоби є придатними до перевезення небезпечних вантажів",
+    "Положення з перевезення (навалом, в упаковках, у цистернах)",
+    "Навантаження, розміщення і кріплення вантажу",
+    "Маркування та знаки небезпеки",
+    "Додаткове обладнання та засоби індивідуального захисту"
+]
 
 # --- ФУНКЦІЇ ДИНАМІЧНИХ ІНЛАЙН-КЛАВІАТУР (З ПАГІНАЦІЄЮ) ---
 
 def get_dtp_sections_keyboard(page: int = 1, per_page: int = 6) -> InlineKeyboardMarkup:
-    """Генерує інлайн-клавіатуру з категоріями ДТП та кнопками гортання сторінок"""
     total_pages = (len(SECTIONS_DTP) + per_page - 1) // per_page
     start_idx = (page - 1) * per_page
     end_idx = start_idx + per_page
@@ -147,7 +167,6 @@ def get_dtp_sections_keyboard(page: int = 1, per_page: int = 6) -> InlineKeyboar
 
 
 def get_sections_keyboard(page: int = 1) -> InlineKeyboardMarkup:
-    """Генерує інлайн-клавіатуру змісту ПДР України"""
     per_page = 7
     start_idx = (page - 1) * per_page
     end_idx = start_idx + per_page
@@ -168,4 +187,69 @@ def get_sections_keyboard(page: int = 1) -> InlineKeyboardMarkup:
         nav_row.append(InlineKeyboardButton(text="Вперед ➡️", callback_data=f"page:{page+1}"))
         
     buttons.append(nav_row)
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+# --- ФУНКЦІЇ ДИНАМІЧНИХ ІНЛАЙН-КЛАВІАТУР ДЛЯ ADR ---
+
+def get_adr_sections_keyboard(page: int = 1, per_page: int = 6) -> InlineKeyboardMarkup:
+    total_pages = (len(SECTIONS_ADR) + per_page - 1) // per_page
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    
+    buttons = []
+
+    for section in SECTIONS_ADR[start_idx:end_idx]:
+        idx = SECTIONS_ADR.index(section)
+
+        display_name = section if len(section) <= 35 else section[:32] + "..."
+        buttons.append([InlineKeyboardButton(text=f"☣️ {display_name}", callback_data=f"adr_sect:{idx}")])
+
+    nav_row = []
+    if page > 1:
+        nav_row.append(InlineKeyboardButton(text="⬅️ Назад", callback_data=f"adr_page:{page - 1}"))
+    else:
+        nav_row.append(InlineKeyboardButton(text="❌ Перша", callback_data="noop"))
+        
+    nav_row.append(InlineKeyboardButton(text=f"📄 {page}/{total_pages}", callback_data="noop"))
+    
+    if page < total_pages:
+        nav_row.append(InlineKeyboardButton(text="Вперед ➡️", callback_data=f"adr_page:{page + 1}"))
+    else:
+        nav_row.append(InlineKeyboardButton(text="❌ Остання", callback_data="noop"))
+        
+    buttons.append(nav_row)
+    
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def get_adr_fabulas_keyboard(fabulas: list, category_idx: int, page: int = 1, per_page: int = 6) -> InlineKeyboardMarkup:
+    total_pages = max(1, (len(fabulas) + per_page - 1) // per_page)
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    
+    buttons = []
+    for acc in fabulas[start_idx:end_idx]:
+        f_id = acc['id'] if isinstance(acc, dict) else acc[0]
+        f_title = acc['title'] if isinstance(acc, dict) else acc[1]
+        
+        display_name = f_title if len(f_title) <= 35 else f_title[:32] + "..."
+        buttons.append([InlineKeyboardButton(text=f"⚖️ {display_name}", callback_data=f"adrfab_{f_id}")])
+
+    if total_pages > 1:
+        nav_row = []
+        if page > 1:
+            nav_row.append(InlineKeyboardButton(text="⬅️", callback_data=f"adr_fpage:{category_idx}:{page - 1}"))
+        else:
+            nav_row.append(InlineKeyboardButton(text="❌", callback_data="noop"))
+            
+        nav_row.append(InlineKeyboardButton(text=f"{page}/{total_pages}", callback_data="noop"))
+        
+        if page < total_pages:
+            nav_row.append(InlineKeyboardButton(text="➡️", callback_data=f"adr_fpage:{category_idx}:{page + 1}"))
+        else:
+            nav_row.append(InlineKeyboardButton(text="❌", callback_data="noop"))
+        buttons.append(nav_row)
+        
+    buttons.append([InlineKeyboardButton(text="🔙 Назад до категорій", callback_data="adr_page:1")])
+    
     return InlineKeyboardMarkup(inline_keyboard=buttons)
