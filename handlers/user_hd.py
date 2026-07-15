@@ -259,7 +259,7 @@ async def handle_dtp_fabula_by_number(message: Message):
     
     if not accidents:
         await message.answer(
-            f"❌ Судових фабул ДТП за пунктом <code>{rule}</code> не знайдено.", 
+            f"❌ Фабул ДТП за пунктом <code>{rule}</code> не знайдено.", 
             parse_mode="HTML"
         )
         return
