@@ -47,7 +47,7 @@ async def start(message: Message):
         reply_markup=main_menu
     )
 
-@router.message(F.text == "ПДР України")
+@router.message(F.text == "📘 ПДР України")
 async def pdr_ukrainy(message: Message):
     await message.answer(
         'Виберіть варіант навігації:\n\n'
@@ -79,15 +79,15 @@ async def about(message: Message):
 # --- НОВА ГІЛКА: ФАБУЛИ ---
 
 # 1. Головна кнопка "Фабули" з main_menu
-@router.message(F.text == "Фабули")
+@router.message(F.text == "⚖️ Фабули")
 async def process_fabula_main_click(message: Message):
     await message.answer(
         "📂 Оберіть тип фабул, який вас цікавить:",
         reply_markup=fabula_type_menu
     )
 
-# 2. Кнопка "Фабули ДТП" з fabula_type_menu
-@router.message(F.text == "Фабули ДТП")
+# 2. Кнопка "Фабули ДТП" 
+@router.message(F.text == "🚗 Фабули ДТП")
 async def process_fabula_dtp_click(message: Message):
     await message.answer(
         "🚗 Оберіть категорію порушення ПДР, щоб переглянути реальні судові фабули ДТП:",
@@ -154,11 +154,11 @@ async def show_full_fabula_dtp(callback: CallbackQuery):
     await callback.answer()
 
 # 6. Обробники-заглушки для інших фабул
-@router.message(F.text == "Фабули ПДР")
+@router.message(F.text == "🚦 Фабули ПДР")
 async def process_fabula_pdr(message: Message):
     await message.answer("📚 Розділ 'Фабули ПДР' знаходиться у розробці...")
 
-@router.message(F.text == "Фабули ГБ")
+@router.message(F.text == "🛡️ Фабули ГБ")
 async def process_fabula_gb(message: Message):
     await message.answer("🛡️ Розділ 'Фабули ГБ' (Громадська безпека) знаходиться у розробці...")
 

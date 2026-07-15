@@ -6,8 +6,8 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardBut
 main_menu = ReplyKeyboardMarkup(
     keyboard=[
         [
-            KeyboardButton(text='ПДР України'),
-            KeyboardButton(text="Фабули"),
+            KeyboardButton(text='📘 ПДР України'),
+            KeyboardButton(text="⚖️ Фабули"),
             KeyboardButton(text="ℹ Про бота")
         ]
     ],
@@ -28,11 +28,11 @@ pdr_options_menu = ReplyKeyboardMarkup(
 fabula_type_menu = ReplyKeyboardMarkup(
     keyboard=[
         [
-            KeyboardButton(text="Фабули ПДР"),
-            KeyboardButton(text="Фабули ГБ")
+            KeyboardButton(text="🚦 Фабули ПДР"),
+            KeyboardButton(text="🛡️ Фабули ГБ")
         ],
         [
-            KeyboardButton(text="Фабули ДТП")
+            KeyboardButton(text="🚗 Фабули ДТП")
         ],
         [
             KeyboardButton(text="⬅ Назад до головного")
