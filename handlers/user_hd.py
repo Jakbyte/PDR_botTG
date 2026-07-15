@@ -266,7 +266,7 @@ async def show_full_fabula_adr(callback: CallbackQuery):
         response_text = f"📌 <b>{title}</b>\n\n📝 <b>Фабула:</b>\n<i>{text}</i>"
         
         back_kb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="🔙 До списку категорій ADR", callback_data="adr_page:1")]
+            [InlineKeyboardButton(text="🔙 До списку категорій", callback_data="adr_page:1")]
         ])
         
         await send_long_message(callback.message, response_text, parse_mode="HTML")
