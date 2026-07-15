@@ -29,6 +29,7 @@ router = Router()
 class SearchStates(StatesGroup):
     searching_fabula = State()
 
+
 # --- ХЕНДЛЕР ДЛЯ ВІДКРИТТЯ ПУНКТУ ---
 @router.callback_query(F.data.startswith("view_point:"))
 async def handle_view_point(callback: CallbackQuery):
@@ -42,6 +43,7 @@ async def handle_view_point(callback: CallbackQuery):
         await callback.message.answer(f"❌ Текст для пункту {point_id} не знайдено.")
         
     await callback.answer()
+
 
 # --- СТАРТ ТА ГОЛОВНЕ МЕНЮ ---
 @router.message(F.text == "/start")
@@ -57,6 +59,7 @@ async def start(message: Message):
         reply_markup=main_menu
     )
 
+
 @router.message(F.text == "📘 ПДР України")
 async def pdr_ukrainy(message: Message):
     await message.answer(
@@ -66,6 +69,7 @@ async def pdr_ukrainy(message: Message):
         reply_markup=pdr_options_menu,
         parse_mode="HTML"
     )
+
 
 @router.message(F.text == "ℹ Про бота")
 async def about(message: Message):
@@ -85,6 +89,7 @@ async def about(message: Message):
     )
     await message.answer(text, parse_mode="HTML")
 
+
 # ==========================================
 # --- ГІЛКА: ФАБУЛИ ---
 # ==========================================
@@ -97,6 +102,7 @@ async def process_fabula_main_click(message: Message):
         reply_markup=fabula_type_menu
     )
 
+
 # 2. Кнопка "Фабули ДТП" (ВМИКАЄ СТАН)
 @router.message(F.text == "🚗 Фабули ДТП")
 async def process_fabula_dtp_click(message: Message, state: FSMContext):
@@ -108,12 +114,14 @@ async def process_fabula_dtp_click(message: Message, state: FSMContext):
         parse_mode="HTML"
     )
 
+
 # 3. Обробка перемикання сторінок категорій ДТП
 @router.callback_query(F.data.startswith("dtp_page:"))
 async def handle_dtp_page_switch(callback: CallbackQuery):
     page = int(callback.data.split(":")[1])
     await callback.message.edit_reply_markup(reply_markup=get_dtp_sections_keyboard(page=page))
     await callback.answer()
+
 
 # 4. Користувач натиснув на конкретну категорію ДТП
 @router.callback_query(F.data.startswith("dtp_sect:"))
@@ -149,6 +157,7 @@ async def handle_dtp_section_click(callback: CallbackQuery):
     )
     await callback.answer()
 
+
 # 5. Обробка натискання на конкретну судову фабулу ДТП
 @router.callback_query(F.data.startswith("fabula_"))
 async def show_full_fabula_dtp(callback: CallbackQuery):
@@ -167,34 +176,36 @@ async def show_full_fabula_dtp(callback: CallbackQuery):
         
     await callback.answer()
 
-# 6. Меню Фабули ПДР (з вибором ADR)
+
+# 6. Меню Фабули ПДР
 @router.message(F.text == "🚦 Фабули ПДР")
 async def process_fabula_pdr(message: Message):
     await message.answer(
-        "🚦 <b>Фабули ПДР</b>\n\nОберіть потрібний підрозділ:",
+        "🚦 <b>Фабули ПДР</b>\n\nОберіть потрібний підрозділ на клавіатурі нижче:",
         reply_markup=pdr_fabula_submenu,
         parse_mode="HTML"
     )
 
-@router.callback_query(F.data == "open_other_pdr")
-async def show_other_pdr_fabulas(callback: CallbackQuery):
-    await callback.message.edit_text("📚 Розділ 'Інші фабули ПДР' знаходиться у розробці...")
-    await callback.answer()
+
+# 7. Обробка кнопки "🚦 Інші порушення ПДР" (ТЕПЕР ЦЕ ТЕКСТОВА КНОПКА)
+@router.message(F.text == "🚦 Інші порушення ПДР")
+async def show_other_pdr_fabulas(message: Message):
+    await message.answer("📚 Розділ 'Інші фабули ПДР' знаходиться у розробці...")
 
 
 # ==========================================
 # --- НЕБЕЗПЕЧНІ ВАНТАЖІ (ADR) ---
 # ==========================================
 
-# 1. Відкриття головного меню категорій ADR
-@router.callback_query(F.data == "open_adr_cats")
-async def show_adr_categories(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "☣️ <b>Оберіть категорію порушення ADR:</b>", 
+# 1. Відкриття головного меню категорій ADR (ТЕПЕР ЦЕ ТЕКСТОВА КНОПКА)
+@router.message(F.text == "☣️ Небезпечні вантажі")
+async def show_adr_categories_message(message: Message):
+    await message.answer(
+        "☣️ <b>Оберіть категорію порушення:</b>", 
         reply_markup=get_adr_sections_keyboard(page=1), 
         parse_mode="HTML"
     )
-    await callback.answer()
+
 
 # 2. Пагінація головних категорій ADR
 @router.callback_query(F.data.startswith("adr_page:"))
@@ -202,6 +213,7 @@ async def handle_adr_page_switch(callback: CallbackQuery):
     page = int(callback.data.split(":")[1])
     await callback.message.edit_reply_markup(reply_markup=get_adr_sections_keyboard(page=page))
     await callback.answer()
+
 
 # 3. Натискання на конкретну категорію (завантаження списку фабул)
 @router.callback_query(F.data.startswith("adr_sect:"))
@@ -225,6 +237,7 @@ async def handle_adr_section_click(callback: CallbackQuery):
     )
     await callback.answer()
 
+
 # 4. Пагінація самих фабул всередині обраної категорії
 @router.callback_query(F.data.startswith("adr_fpage:"))
 async def handle_adr_fabulas_page_switch(callback: CallbackQuery):
@@ -236,8 +249,9 @@ async def handle_adr_fabulas_page_switch(callback: CallbackQuery):
     fabulas = get_adr_fabulas_by_category(db_category_name)
     
     markup = get_adr_fabulas_keyboard(fabulas, category_idx=cat_idx, page=page)
-    await callback.message.edit_reply_markup(reply_markup=markup)
+    await callback.message.edit_reply_markup(markup)
     await callback.answer()
+
 
 # 5. Вивід повного тексту конкретної фабули
 @router.callback_query(F.data.startswith("adrfab_"))
@@ -276,6 +290,7 @@ async def pdr_search_mode(message: Message):
         parse_mode="HTML"
     )
 
+
 @router.message(F.text == "📚 Розділи ПДР")
 async def pdr_sections_mode(message: Message):
     await message.answer(
@@ -284,15 +299,18 @@ async def pdr_sections_mode(message: Message):
         parse_mode="HTML"
     )
 
+
 @router.callback_query(F.data.startswith("page:"))
 async def handle_page_switch(callback: CallbackQuery):
     page = int(callback.data.split(":")[1])
     await callback.message.edit_reply_markup(reply_markup=get_sections_keyboard(page=page))
     await callback.answer()
 
+
 @router.callback_query(F.data == "noop")
 async def handle_noop(callback: CallbackQuery):
     await callback.answer()
+
 
 @router.callback_query(F.data.startswith("section:"))
 async def handle_section_click(callback: CallbackQuery):
@@ -331,9 +349,11 @@ async def back_to_main_from_fabula(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("Головне меню:", reply_markup=main_menu)
 
+
 @router.message(F.text == "⬅ Назад до menu ПДР")
 async def back_to_pdr(message: Message):
     await pdr_ukrainy(message)
+
 
 @router.message(F.text == "⬅ Назад")
 async def back_to_main(message: Message, state: FSMContext):
@@ -370,6 +390,7 @@ async def handle_dtp_fabula_by_number(message: Message):
         reply_markup=markup,
         parse_mode="HTML"
     )
+
 
 # --- СТАНДАРТНИЙ ПОШУК ПДР ---
 @router.message(F.text.regexp(r"^\d+\.\d+(\.\d+)?$"))

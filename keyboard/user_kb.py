@@ -42,11 +42,17 @@ fabula_type_menu = ReplyKeyboardMarkup(
 )
 
 # Підменю для розділу "Фабули ПДР"
-pdr_fabula_submenu = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [InlineKeyboardButton(text="☣️ Небезпечні вантажі", callback_data="open_adr_cats")],
-        [InlineKeyboardButton(text="🚦 Інші порушення ПДР", callback_data="open_other_pdr")]
-    ]
+pdr_fabula_submenu = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text="☣️ Небезпечні вантажі"),
+            KeyboardButton(text="🚦 Інші порушення ПДР")
+        ],
+        [
+            KeyboardButton(text="⬅ Назад")
+        ]
+    ],
+    resize_keyboard=True
 )
 # Кнопка повернення під час ручного пошуку пункту
 pdr_search_back_menu = ReplyKeyboardMarkup(
