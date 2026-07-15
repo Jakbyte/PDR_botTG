@@ -1,4 +1,5 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # --- КЛАВІАТУРИ ГОЛОВНОГО МЕНЮ ТА НАВІГАЦІЇ ---
 
@@ -54,6 +55,7 @@ pdr_fabula_submenu = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True
 )
+
 # Кнопка повернення під час ручного пошуку пункту
 pdr_search_back_menu = ReplyKeyboardMarkup(
     keyboard=[
@@ -129,7 +131,7 @@ SECTIONS_ADR = [
     "Перевізні документи",
     "Письмова інструкція",
     "Національний дозвіл (маршрут руху)",
-    "Копія договору обов’язкового страхування відповідальності суб’єктів перевезення небезпечних вантажів на випадок настання негативних наслідків під час перевезення небезпечних вантажів",
+    "Копія договору обов’язкового страхування відповідальності суб’єктів перевезення небезпечних вантажів на випадок настання негативних наслідків под час перевезення небезпечних вантажів",
     "Свідоцтво про допущення транспортних засобів до перевезення визначених небезпечних вантажів",
     "Свідоцтво ДОПНВ про підготовку водія",
     "Вантаж допущено до перевезення вантажу",
@@ -230,25 +232,52 @@ def get_adr_sections_keyboard(page: int = 1, per_page: int = 6) -> InlineKeyboar
 
 def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
     builder = InlineKeyboardBuilder()
-    
     start_idx = (page - 1) * 5
     end_idx = start_idx + 5
     page_fabulas = fabulas[start_idx:end_idx]
+    category_name = ""
+    if 0 <= category_idx < len(SECTIONS_ADR):
+        category_name = SECTIONS_ADR[category_idx]
 
     for f in page_fabulas:
         title = f[1] if isinstance(f, tuple) else f['title']
         fabula_id = f[0] if isinstance(f, tuple) else f['id']
-        max_length = 35
-        if len(title) > max_length:
-            button_text = f"{title[:max_length-3].strip()}..."
+        cleaned_title = title
+
+
+        replacements = [
+            "Невірно заповнена ТТН:",
+            "Невірно заповнена ТТН",
+            "Невірно заповнений",
+            "Невірно заповнені",
+            "Порушення правил"
+        ]
+        
+        if category_name:
+            replacements.insert(0, f"{category_name}:")
+            replacements.insert(1, category_name)
+
+        for r in replacements:
+            if cleaned_title.startswith(r):
+                cleaned_title = cleaned_title.replace(r, "", 1).strip()
+        
+        cleaned_title = cleaned_title.lstrip(":- ").strip()
+        if cleaned_title:
+            cleaned_title = cleaned_title[0].upper() + cleaned_title[1:]
         else:
-            button_text = f"{title}"
+            cleaned_title = title 
+            
+        max_length = 38
+        if len(cleaned_title) > max_length:
+            button_text = f"{cleaned_title[:max_length-3].strip()}..."
+        else:
+            button_text = f"{cleaned_title}"
             
         builder.row(InlineKeyboardButton(
             text=button_text, 
             callback_data=f"adrfab_{fabula_id}"
         ))
-
+        
     nav_buttons = []
     if page > 1:
         nav_buttons.append(InlineKeyboardButton(text="⬅️ Назад", callback_data=f"adr_fpage:{category_idx}:{page-1}"))
@@ -257,7 +286,6 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
         
     if nav_buttons:
         builder.row(*nav_buttons)
-        
     builder.row(InlineKeyboardButton(text="🔙 До категорій", callback_data="adr_page:1"))
     
     return builder.as_markup()
