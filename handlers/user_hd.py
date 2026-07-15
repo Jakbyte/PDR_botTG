@@ -1,6 +1,8 @@
 from aiogram import F, Router
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+
 from database.db_manager import get_rule_by_id, get_points_by_section
+from db_users.requests import add_user
 from keyboard.user_kb import main_menu, pdr_options_menu, pdr_search_back_menu, get_sections_keyboard
 
 router = Router()  
@@ -23,7 +25,16 @@ async def handle_view_point(callback: CallbackQuery):
 # --- СТАРТ ТА ГОЛОВНЕ МЕНЮ ---
 @router.message(F.text == "/start")
 async def start(message: Message):
-    await message.answer("Головне меню:", reply_markup=main_menu)
+    add_user(
+        user_id=message.from_user.id,
+        username=message.from_user.username,
+        first_name=message.from_user.first_name
+    )
+    await message.answer(
+        f"👋 Привіт, {message.from_user.first_name}!\n"
+        "Я допоможу тобі швидко знайти ПДР України. Оберіть дію в меню нижче:", 
+        reply_markup=main_menu
+    )
 
 @router.message(F.text == "ПДР України")
 async def pdr_ukrainy(message: Message):
