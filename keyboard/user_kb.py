@@ -127,21 +127,21 @@ SECTIONS_DTP = [
     "ПЕРЕШКОДА АВТОБУСУ ВІД ЗАЇЗНОЇ КИШЕНІ", "НЕ НАДАВ ПЕРЕВАГИ ПІШОХОДУ НА ПЕРЕХОДІ"
 ]
 
-SECTIONS_ADR = [
-    "Перевізні документи",
-    "Письмова інструкція",
-    "Національний дозвіл (маршрут руху)",
-    "Копія договору обов’язкового страхування відповідальності суб’єктів перевезення небезпечних вантажів на випадок настання негативних наслідків под час перевезення небезпечних вантажів",
-    "Свідоцтво про допущення транспортних засобів до перевезення визначених небезпечних вантажів",
-    "Свідоцтво ДОПНВ про підготовку водія",
-    "Вантаж допущено до перевезення вантажу",
-    "Транспортні засоби є придатними до перевезення небезпечних вантажів",
-    "Положення з перевезення (навалом, в упаковках, у цистернах)",
-    "Навантаження, розміщення і кріплення вантажу",
-    "Маркування та знаки небезпеки",
-    "Додаткове обладнання та засоби індивідуального захисту"
-]
-
+ADR_MAP = {
+    "Перевізні документи": "📄 Перевізні документи",
+    "Письмова інструкція": "ℹ️ Письмова інструкція",
+    "Національний дозвіл (маршрут руху)": "🗺️ Дозвіл (маршрут руху)",
+    "Копія договору обов’язкового страхування відповідальності суб’єктів перевезення небезпечних вантажів на випадок настання негативних наслідків под час перевезення небезпечних вантажів": "🛡️ Страховий договір",
+    "Свідоцтво про допущення транспортних засобів до перевезення визначених небезпечних вантажів": "🚚 Свідоцтво допуску ТЗ",
+    "Свідоцтво ДОПНВ про підготовку водія": "🪪 Свідоцтво ДОПНВ водія",
+    "Вантаж допущено до перевезення вантажу": "📦 Допуск вантажу",
+    "Транспортні засоби є придатними до перевезення небезпечних вантажів": "🛠️ Придатність ТЗ",
+    "Положення з перевезення (навалом, в упаковках, у цистернах)": "⚖️ Режими перевезення",
+    "Навантаження, розміщення і кріплення вантажу": "🏗️ Кріплення вантажу",
+    "Маркування та знаки небезпеки": "⚠️ Маркування & знаки",
+    "Додаткове обладнання та засоби індивідуального захисту": "🧰 Обладнання та ЗІЗ"
+}
+SECTIONS_ADR = list(ADR_MAP.keys())
 # --- ФУНКЦІЇ ДИНАМІЧНИХ ІНЛАЙН-КЛАВІАТУР (З ПАГІНАЦІЄЮ) ---
 
 def get_dtp_sections_keyboard(page: int = 1, per_page: int = 6) -> InlineKeyboardMarkup:
@@ -206,11 +206,13 @@ def get_adr_sections_keyboard(page: int = 1, per_page: int = 6) -> InlineKeyboar
     
     buttons = []
 
-    for section in SECTIONS_ADR[start_idx:end_idx]:
-        idx = SECTIONS_ADR.index(section)
-
-        display_name = section if len(section) <= 35 else section[:32] + "..."
-        buttons.append([InlineKeyboardButton(text=f"{display_name}", callback_data=f"adr_sect:{idx}")])
+    # Беремо зріз категорій для поточної сторінки
+    for idx in range(start_idx, min(end_idx, len(SECTIONS_ADR))):
+        db_name = SECTIONS_ADR[idx]
+        # Отримуємо коротку назву зі словника (якщо раптом немає — лишаємо оригінал)
+        display_name = ADR_MAP.get(db_name, db_name)
+        
+        buttons.append([InlineKeyboardButton(text=display_name, callback_data=f"adr_sect:{idx}")])
 
     nav_row = []
     if page > 1:
@@ -235,6 +237,8 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
     start_idx = (page - 1) * 5
     end_idx = start_idx + 5
     page_fabulas = fabulas[start_idx:end_idx]
+    
+    # Визначаємо оригінальну назву поточної категорії з БД
     category_name = ""
     if 0 <= category_idx < len(SECTIONS_ADR):
         category_name = SECTIONS_ADR[category_idx]
@@ -244,7 +248,7 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
         fabula_id = f[0] if isinstance(f, tuple) else f['id']
         cleaned_title = title
 
-
+        # Фрази для вирізання
         replacements = [
             "Невірно заповнена ТТН:",
             "Невірно заповнена ТТН",
@@ -253,25 +257,31 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
             "Порушення правил"
         ]
         
+        # Динамічно додаємо довгу назву поточної категорії на видалення
         if category_name:
             replacements.insert(0, f"{category_name}:")
             replacements.insert(1, category_name)
-
+        
+        # Вирізаємо шаблони з початку назви фабули
         for r in replacements:
             if cleaned_title.startswith(r):
                 cleaned_title = cleaned_title.replace(r, "", 1).strip()
         
+        # Зачищаємо залишки двокрапок/тире
         cleaned_title = cleaned_title.lstrip(":- ").strip()
+
+        # Робимо першу літеру великою
         if cleaned_title:
             cleaned_title = cleaned_title[0].upper() + cleaned_title[1:]
         else:
             cleaned_title = title 
             
+        # Форматуємо довжину тексту кнопки (до 38 символів)
         max_length = 38
         if len(cleaned_title) > max_length:
-            button_text = f"{cleaned_title[:max_length-3].strip()}..."
+            button_text = f"⚖️ {cleaned_title[:max_length-3].strip()}..."
         else:
-            button_text = f"{cleaned_title}"
+            button_text = f"⚖️ {cleaned_title}"
             
         builder.row(InlineKeyboardButton(
             text=button_text, 
