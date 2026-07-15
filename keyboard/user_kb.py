@@ -240,9 +240,9 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
         fabula_id = f[0] if isinstance(f, tuple) else f['id']
         max_length = 35
         if len(title) > max_length:
-            button_text = f"⚖️ {title[:max_length-3].strip()}..."
+            button_text = f"{title[:max_length-3].strip()}..."
         else:
-            button_text = f"⚖️ {title}"
+            button_text = f"{title}"
             
         builder.row(InlineKeyboardButton(
             text=button_text, 
@@ -258,6 +258,6 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
     if nav_buttons:
         builder.row(*nav_buttons)
         
-    builder.row(InlineKeyboardButton(text="🔙 До категорій ADR", callback_data="adr_page:1"))
+    builder.row(InlineKeyboardButton(text="🔙 До категорій", callback_data="adr_page:1"))
     
     return builder.as_markup()
