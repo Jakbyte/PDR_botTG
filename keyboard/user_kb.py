@@ -208,7 +208,7 @@ def get_adr_sections_keyboard(page: int = 1, per_page: int = 6) -> InlineKeyboar
         idx = SECTIONS_ADR.index(section)
 
         display_name = section if len(section) <= 35 else section[:32] + "..."
-        buttons.append([InlineKeyboardButton(text=f"☣️ {display_name}", callback_data=f"adr_sect:{idx}")])
+        buttons.append([InlineKeyboardButton(text=f"{display_name}", callback_data=f"adr_sect:{idx}")])
 
     nav_row = []
     if page > 1:

@@ -1,6 +1,8 @@
 import sqlite3
+import os
 
-DB_PATH = "neb_fabulas.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'neb_fabulas.db') 
 
 # 1. Отримати список унікальних головних категорій
 def get_adr_categories():
