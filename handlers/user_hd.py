@@ -90,7 +90,7 @@ async def process_fabula_main_click(message: Message):
 @router.message(F.text == "🚗 Фабули ДТП")
 async def process_fabula_dtp_click(message: Message):
     await message.answer(
-        "🚗 Оберіть категорію порушення ПДР, щоб переглянути реальні судові фабули ДТП:",
+        "🚗 Оберіть категорію порушення ПДР, щоб переглянути фабули ДТП:",
         reply_markup=get_dtp_sections_keyboard(page=1)
     )
 
