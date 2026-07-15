@@ -87,11 +87,14 @@ async def process_fabula_main_click(message: Message):
     )
 
 # 2. Кнопка "Фабули ДТП" 
-@router.message(F.text == "🚗 Фабули ДТП")
+@router.message(F.text == "💥 Фабули ДТП")
 async def process_fabula_dtp_click(message: Message):
     await message.answer(
-        "🚗 Оберіть категорію порушення ПДР, щоб переглянути фабули ДТП:",
-        reply_markup=get_dtp_sections_keyboard(page=1)
+        "🚗 Оберіть категорію порушення ПДР за допомогою кнопок нижче\n"
+        "або <b>просто надішліть мені номер пункту</b> (наприклад: <code>12.3</code>, <code>10.4</code>), "
+        "щоб одразу отримати фабули за цим пунктом правил!",
+        reply_markup=get_dtp_sections_keyboard(page=1),
+        parse_mode="HTML"
     )
 
 # 3. Обробка перемикання сторінок категорій ДТП
