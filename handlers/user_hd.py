@@ -2,7 +2,7 @@ from aiogram import F, Router
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 from database.db_manager import get_rule_by_id, get_points_by_section
-from database.db_accident_manager import get_accidents_by_violation, get_accident_by_id
+from database.db_manager_dtp import get_accidents_by_violation, get_accident_by_id
 from db_users.requests import add_user
 
 from keyboard.user_kb import (
@@ -11,44 +11,14 @@ from keyboard.user_kb import (
     pdr_search_back_menu, 
     fabula_type_menu, 
     SECTIONS_DTP,               
-    get_dtp_sections_keyboard,    
+    get_dtp_sections_keyboard,
     get_sections_keyboard        
 )
+
 router = Router()  
 
 
-def get_dtp_sections_keyboard(page: int = 1, per_page: int = 6) -> InlineKeyboardMarkup:
-    total_pages = (len(SECTIONS_DTP) + per_page - 1) // per_page
-    start_idx = (page - 1) * per_page
-    end_idx = start_idx + per_page
-    
-    buttons = []
-    
-    # Додаємо категорії для поточної сторінки
-    for section in SECTIONS_DTP[start_idx:end_idx]:
-        idx = SECTIONS_DTP.index(section)
-        display_name = section if len(section) <= 35 else section[:32] + "..."
-        buttons.append([InlineKeyboardButton(text=f"📂 {display_name}", callback_data=f"dtp_sect:{idx}")])
-        
-    # Кнопки навігації
-    nav_row = []
-    if page > 1:
-        nav_row.append(InlineKeyboardButton(text="⬅️ Назад", callback_data=f"dtp_page:{page - 1}"))
-    else:
-        nav_row.append(InlineKeyboardButton(text="❌ Перша", callback_data="noop"))
-        
-    nav_row.append(InlineKeyboardButton(text=f"📄 {page}/{total_pages}", callback_data="noop"))
-    
-    if page < total_pages:
-        nav_row.append(InlineKeyboardButton(text="Вперед ➡️", callback_data=f"dtp_page:{page + 1}"))
-    else:
-        nav_row.append(InlineKeyboardButton(text="❌ Остання", callback_data="noop"))
-        
-    buttons.append(nav_row)
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
-# --- ХЕНДЛЕР ДЛЯ ВІДКРИТТЯ ПУНКТУ
+# --- ХЕНДЛЕР ДЛЯ ВІДКРИТТЯ ПУНКТУ ---
 @router.callback_query(F.data.startswith("view_point:"))
 async def handle_view_point(callback: CallbackQuery):
     point_id = callback.data.split(":")[1]
@@ -255,16 +225,17 @@ async def handle_section_click(callback: CallbackQuery):
 
 # --- КНОПКИ НАЗАД (СИСТЕМА ПОВЕРНЕНЬ) ---
 
+# Повернення з меню типу фабул до головного меню
 @router.message(F.text == "⬅ Назад до головного")
 async def back_to_main_from_fabula(message: Message):
     await message.answer("Головне меню:", reply_markup=main_menu)
 
-# Повернення з меню ПДР до головного меню
-@router.message(F.text == "⬅ Назад до меню ПДР")
+# Повернення з меню ручного пошуку пункту до меню ПДР
+@router.message(F.text == "⬅ Назад до menu ПДР")
 async def back_to_pdr(message: Message):
     await pdr_ukrainy(message)
 
-# Загальне повернення ПДР
+# Повернення з меню опцій ПДР до головного меню
 @router.message(F.text == "⬅ Назад")
 async def back_to_main(message: Message):
     await message.answer("Головне меню:", reply_markup=main_menu)
