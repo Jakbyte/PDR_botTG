@@ -2,10 +2,51 @@ from aiogram import F, Router
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 from database.db_manager import get_rule_by_id, get_points_by_section
+from database.db_accident_manager import get_accidents_by_violation, get_accident_by_id
 from db_users.requests import add_user
-from keyboard.user_kb import main_menu, pdr_options_menu, pdr_search_back_menu, get_sections_keyboard
 
+from keyboard.user_kb import (
+    main_menu, 
+    pdr_options_menu, 
+    pdr_search_back_menu, 
+    fabula_type_menu, 
+    SECTIONS_DTP,               
+    get_dtp_sections_keyboard,    
+    get_sections_keyboard        
+)
 router = Router()  
+
+
+def get_dtp_sections_keyboard(page: int = 1, per_page: int = 6) -> InlineKeyboardMarkup:
+    total_pages = (len(SECTIONS_DTP) + per_page - 1) // per_page
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    
+    buttons = []
+    
+    # Додаємо категорії для поточної сторінки
+    for section in SECTIONS_DTP[start_idx:end_idx]:
+        idx = SECTIONS_DTP.index(section)
+        display_name = section if len(section) <= 35 else section[:32] + "..."
+        buttons.append([InlineKeyboardButton(text=f"📂 {display_name}", callback_data=f"dtp_sect:{idx}")])
+        
+    # Кнопки навігації
+    nav_row = []
+    if page > 1:
+        nav_row.append(InlineKeyboardButton(text="⬅️ Назад", callback_data=f"dtp_page:{page - 1}"))
+    else:
+        nav_row.append(InlineKeyboardButton(text="❌ Перша", callback_data="noop"))
+        
+    nav_row.append(InlineKeyboardButton(text=f"📄 {page}/{total_pages}", callback_data="noop"))
+    
+    if page < total_pages:
+        nav_row.append(InlineKeyboardButton(text="Вперед ➡️", callback_data=f"dtp_page:{page + 1}"))
+    else:
+        nav_row.append(InlineKeyboardButton(text="❌ Остання", callback_data="noop"))
+        
+    buttons.append(nav_row)
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
 
 # --- ХЕНДЛЕР ДЛЯ ВІДКРИТТЯ ПУНКТУ
 @router.callback_query(F.data.startswith("view_point:"))
@@ -15,12 +56,12 @@ async def handle_view_point(callback: CallbackQuery):
     
     if rule_text:
         full_message = f"📌 <b>Пункт {point_id}:</b>\n\n{rule_text}"
-        # Використовуємо callback.message для надсилання відповіді
         await send_long_message(callback.message, full_message, parse_mode="HTML")
     else:
         await callback.message.answer(f"❌ Текст для пункту {point_id} не знайдено.")
         
     await callback.answer()
+
 
 # --- СТАРТ ТА ГОЛОВНЕ МЕНЮ ---
 @router.message(F.text == "/start")
@@ -64,6 +105,95 @@ async def about(message: Message):
     )
     await message.answer(text, parse_mode="HTML")
 
+
+# --- НОВА ГІЛКА: ФАБУЛИ ---
+
+# 1. Головна кнопка "Фабули" з main_menu
+@router.message(F.text == "Фабули")
+async def process_fabula_main_click(message: Message):
+    await message.answer(
+        "📂 Оберіть тип фабул, який вас цікавить:",
+        reply_markup=fabula_type_menu
+    )
+
+# 2. Кнопка "Фабули ДТП" з fabula_type_menu
+@router.message(F.text == "Фабули ДТП")
+async def process_fabula_dtp_click(message: Message):
+    await message.answer(
+        "🚗 Оберіть категорію порушення ПДР, щоб переглянути реальні судові фабули ДТП:",
+        reply_markup=get_dtp_sections_keyboard(page=1)
+    )
+
+# 3. Обробка перемикання сторінок категорій ДТП
+@router.callback_query(F.data.startswith("dtp_page:"))
+async def handle_dtp_page_switch(callback: CallbackQuery):
+    page = int(callback.data.split(":")[1])
+    await callback.message.edit_reply_markup(reply_markup=get_dtp_sections_keyboard(page=page))
+    await callback.answer()
+
+# 4. Користувач натиснув на конкретну категорію ДТП
+@router.callback_query(F.data.startswith("dtp_sect:"))
+async def handle_dtp_section_click(callback: CallbackQuery):
+    section_idx = int(callback.data.split(":")[1])
+    db_violation_name = SECTIONS_DTP[section_idx]
+    
+    accidents = get_accidents_by_violation(db_violation_name)
+    
+    if not accidents:
+        await callback.message.answer(f"❌ За категорією «{db_violation_name}» фабул не знайдено.")
+        await callback.answer()
+        return
+
+    inline_kb = []
+    for acc in accidents:
+        btn_text = f"п. {acc['pdr_rule']} | {acc['title']}"
+        if len(btn_text) > 40:
+            btn_text = btn_text[:37] + "..."
+            
+        inline_kb.append([
+            InlineKeyboardButton(text=btn_text, callback_data=f"fabula_{acc['id']}")
+        ])
+        
+    inline_kb.append([
+        InlineKeyboardButton(text="⬅️ Назад до категорій", callback_data="dtp_page:1")
+    ])
+    
+    markup = InlineKeyboardMarkup(inline_keyboard=inline_kb)
+    await callback.message.edit_text(
+        f"🔍 Знайдено випадків у категорії «{db_violation_name}»:",
+        reply_markup=markup
+    )
+    await callback.answer()
+
+# 5. Обробка натискання на конкретну судову фабулу ДТП
+@router.callback_query(F.data.startswith("fabula_"))
+async def show_full_fabula_dtp(callback: CallbackQuery):
+    accident_id = int(callback.data.split("_")[1])
+    accident = get_accident_by_id(accident_id)
+    
+    if accident:
+        response_text = (
+            f"📌 <b>Пункт ПДР:</b> {accident['pdr_rule']}\n"
+            f"⚠️ <b>Порушення:</b> {accident['violation_title']}\n\n"
+            f"📝 <b>Опис пригоди (Фабула):</b>\n<i>{accident['fabula']}</i>"
+        )
+        await send_long_message(callback.message, response_text, parse_mode="HTML")
+    else:
+        await callback.message.answer("❌ Помилка: Фабулу не знайдено.")
+        
+    await callback.answer()
+
+# 6. Обробники-заглушки для інших фабул
+@router.message(F.text == "Фабули ПДР")
+async def process_fabula_pdr(message: Message):
+    await message.answer("📚 Розділ 'Фабули ПДР' знаходиться у розробці...")
+
+@router.message(F.text == "Фабули ГБ")
+async def process_fabula_gb(message: Message):
+    await message.answer("🛡️ Розділ 'Фабули ГБ' (Громадська безпека) знаходиться у розробці...")
+
+
+# --- РОЗДІЛИ ПДР (АКТИВНІ КНОПКИ) ---
 @router.message(F.text == "🔢 Пошук за номером пункту")
 async def pdr_search_mode(message: Message):
     await message.answer(
@@ -122,16 +252,25 @@ async def handle_section_click(callback: CallbackQuery):
     )
     await callback.answer()
 
-# --- КНОПКИ НАЗАД ---
+
+# --- КНОПКИ НАЗАД (СИСТЕМА ПОВЕРНЕНЬ) ---
+
+@router.message(F.text == "⬅ Назад до головного")
+async def back_to_main_from_fabula(message: Message):
+    await message.answer("Головне меню:", reply_markup=main_menu)
+
+# Повернення з меню ПДР до головного меню
 @router.message(F.text == "⬅ Назад до меню ПДР")
 async def back_to_pdr(message: Message):
     await pdr_ukrainy(message)
 
+# Загальне повернення ПДР
 @router.message(F.text == "⬅ Назад")
 async def back_to_main(message: Message):
     await message.answer("Головне меню:", reply_markup=main_menu)
 
-# --- ШВИДКИЙ ПОШУК ---
+
+# --- ШВИДКИЙ ПОШУК ПДР ЗА ЦИФРАМИ ---
 @router.message(F.text.regexp(r"^\d+\.\d+(\.\d+)?$"))
 async def handle_rule(message: Message):
     rule = message.text.strip()
@@ -141,6 +280,7 @@ async def handle_rule(message: Message):
         await send_long_message(message, full_message, parse_mode="HTML")
     else:
         await message.answer(f"❌ Пункт <code>{rule}</code> не знайдено", parse_mode="HTML")
+
 
 # --- ФУНКЦІЯ ДЛЯ ДОВГИХ ПОВІДОМЛЕНЬ ---
 async def send_long_message(message: Message, text: str, chunk_size: int = 4096, parse_mode: str = None):
