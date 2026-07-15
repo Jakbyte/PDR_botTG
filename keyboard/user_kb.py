@@ -228,34 +228,36 @@ def get_adr_sections_keyboard(page: int = 1, per_page: int = 6) -> InlineKeyboar
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def get_adr_fabulas_keyboard(fabulas: list, category_idx: int, page: int = 1, per_page: int = 6) -> InlineKeyboardMarkup:
-    total_pages = max(1, (len(fabulas) + per_page - 1) // per_page)
-    start_idx = (page - 1) * per_page
-    end_idx = start_idx + per_page
+def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
+    builder = InlineKeyboardBuilder()
     
-    buttons = []
-    for acc in fabulas[start_idx:end_idx]:
-        f_id = acc['id'] if isinstance(acc, dict) else acc[0]
-        f_title = acc['title'] if isinstance(acc, dict) else acc[1]
-        
-        display_name = f_title if len(f_title) <= 35 else f_title[:32] + "..."
-        buttons.append([InlineKeyboardButton(text=f"⚖️ {display_name}", callback_data=f"adrfab_{f_id}")])
+    start_idx = (page - 1) * 5
+    end_idx = start_idx + 5
+    page_fabulas = fabulas[start_idx:end_idx]
 
-    if total_pages > 1:
-        nav_row = []
-        if page > 1:
-            nav_row.append(InlineKeyboardButton(text="⬅️", callback_data=f"adr_fpage:{category_idx}:{page - 1}"))
+    for f in page_fabulas:
+        title = f[1] if isinstance(f, tuple) else f['title']
+        fabula_id = f[0] if isinstance(f, tuple) else f['id']
+        max_length = 35
+        if len(title) > max_length:
+            button_text = f"⚖️ {title[:max_length-3].strip()}..."
         else:
-            nav_row.append(InlineKeyboardButton(text="❌", callback_data="noop"))
+            button_text = f"⚖️ {title}"
             
-        nav_row.append(InlineKeyboardButton(text=f"{page}/{total_pages}", callback_data="noop"))
+        builder.row(InlineKeyboardButton(
+            text=button_text, 
+            callback_data=f"adrfab_{fabula_id}"
+        ))
+
+    nav_buttons = []
+    if page > 1:
+        nav_buttons.append(InlineKeyboardButton(text="⬅️ Назад", callback_data=f"adr_fpage:{category_idx}:{page-1}"))
+    if end_idx < len(fabulas):
+        nav_buttons.append(InlineKeyboardButton(text="Вперед ➡️", callback_data=f"adr_fpage:{category_idx}:{page+1}"))
         
-        if page < total_pages:
-            nav_row.append(InlineKeyboardButton(text="➡️", callback_data=f"adr_fpage:{category_idx}:{page + 1}"))
-        else:
-            nav_row.append(InlineKeyboardButton(text="❌", callback_data="noop"))
-        buttons.append(nav_row)
+    if nav_buttons:
+        builder.row(*nav_buttons)
         
-    buttons.append([InlineKeyboardButton(text="🔙 Назад до категорій", callback_data="adr_page:1")])
+    builder.row(InlineKeyboardButton(text="🔙 До категорій ADR", callback_data="adr_page:1"))
     
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
+    return builder.as_markup()
