@@ -92,7 +92,7 @@ async def process_fabula_main_click(message: Message):
     )
 
 # 2. Кнопка "Фабули ДТП" (ВМИКАЄ СТАН)
-@router.message(F.text == "💥 Фабули ДТП")
+@router.message(F.text == "🚗 Фабули ДТП")
 async def process_fabula_dtp_click(message: Message, state: FSMContext):
     await state.set_state(SearchStates.searching_fabula) 
     await message.answer(
