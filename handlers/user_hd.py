@@ -276,7 +276,7 @@ async def handle_dtp_fabula_by_number(message: Message):
         
     markup = InlineKeyboardMarkup(inline_keyboard=inline_kb)
     await message.answer(
-        f"⚖️ <b>Знайдено судових справ за п. {rule}:</b>\n"
+        f"⚖️ <b>Знайдені фабули за п. {rule}:</b>\n"
         f"Оберіть випадок нижче, щоб відкрити його фабулу:",
         reply_markup=markup,
         parse_mode="HTML"
