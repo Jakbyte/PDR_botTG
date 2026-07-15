@@ -1,8 +1,10 @@
 from aiogram import F, Router
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 
 from database.db_manager import get_rule_by_id, get_points_by_section
-from database.db_manager_dtp import get_accidents_by_violation, get_accident_by_id
+from database.db_manager_dtp import get_accidents_by_violation, get_accident_by_id, get_accidents_by_rule
 from db_users.requests import add_user
 
 from keyboard.user_kb import (
@@ -16,6 +18,9 @@ from keyboard.user_kb import (
 )
 
 router = Router()  
+
+class SearchStates(StatesGroup):
+    searching_fabula = State()
 
 
 # --- ХЕНДЛЕР ДЛЯ ВІДКРИТТЯ ПУНКТУ ---
@@ -86,13 +91,13 @@ async def process_fabula_main_click(message: Message):
         reply_markup=fabula_type_menu
     )
 
-# 2. Кнопка "Фабули ДТП" 
+# 2. Кнопка "Фабули ДТП" (ВМИКАЄ СТАН)
 @router.message(F.text == "💥 Фабули ДТП")
-async def process_fabula_dtp_click(message: Message):
+async def process_fabula_dtp_click(message: Message, state: FSMContext):
+    await state.set_state(SearchStates.searching_fabula) 
     await message.answer(
         "🚗 Оберіть категорію порушення ПДР за допомогою кнопок нижче\n"
-        "або <b>просто надішліть мені номер пункту</b> (наприклад: <code>12.3</code>, <code>10.4</code>), "
-        "щоб одразу отримати фабули за цим пунктом правил!",
+        "або <b>просто напишіть номер пункту</b> (наприклад, <code>12.3</code>), щоб отримати фабули за ним!",
         reply_markup=get_dtp_sections_keyboard(page=1),
         parse_mode="HTML"
     )
@@ -228,9 +233,10 @@ async def handle_section_click(callback: CallbackQuery):
 
 # --- КНОПКИ НАЗАД (СИСТЕМА ПОВЕРНЕНЬ) ---
 
-# Повернення з меню типу фабул до головного меню
+# Повернення з меню типу фабул до головного меню (додано state в аргументи)
 @router.message(F.text == "⬅ Назад до головного")
-async def back_to_main_from_fabula(message: Message):
+async def back_to_main_from_fabula(message: Message, state: FSMContext):
+    await state.clear()
     await message.answer("Головне меню:", reply_markup=main_menu)
 
 # Повернення з меню ручного пошуку пункту до меню ПДР
@@ -238,22 +244,56 @@ async def back_to_main_from_fabula(message: Message):
 async def back_to_pdr(message: Message):
     await pdr_ukrainy(message)
 
-# Повернення з меню опцій ПДР до головного меню
+# Повернення з меню опцій ПДР до головного меню (додано state в аргументи)
 @router.message(F.text == "⬅ Назад")
-async def back_to_main(message: Message):
+async def back_to_main(message: Message, state: FSMContext):
+    await state.clear()
     await message.answer("Головне меню:", reply_markup=main_menu)
 
 
-# --- ШВИДКИЙ ПОШУК ПДР ЗА ЦИФРАМИ ---
+#  ПОШУК ФАБУЛ ДТП (спрацьовує ТІЛЬКИ в меню ДТП фабул) 
+@router.message(SearchStates.searching_fabula, F.text.regexp(r"^\d+\.\d+(\.\d+)?$"))
+async def handle_dtp_fabula_by_number(message: Message):
+    rule = message.text.strip()
+    accidents = get_accidents_by_rule(rule)
+    
+    if not accidents:
+        await message.answer(
+            f"❌ Судових фабул ДТП за пунктом <code>{rule}</code> не знайдено.", 
+            parse_mode="HTML"
+        )
+        return
+
+    # Будуємо інлайн-кнопки
+    inline_kb = []
+    for acc in accidents[:10]: 
+        btn_text = f"⚖️ {acc['title']}"
+        if len(btn_text) > 40:
+            btn_text = btn_text[:37] + "..."
+        inline_kb.append([
+            InlineKeyboardButton(text=btn_text, callback_data=f"fabula_{acc['id']}")
+        ])
+        
+    markup = InlineKeyboardMarkup(inline_keyboard=inline_kb)
+    await message.answer(
+        f"⚖️ <b>Знайдено судових справ за п. {rule}:</b>\n"
+        f"Оберіть випадок нижче, щоб відкрити його фабулу:",
+        reply_markup=markup,
+        parse_mode="HTML"
+    )
+
+
+# --- Б) СТАНДАРТНИЙ ПОШУК ПДР (спрацьовує в усіх інших випадках) ---
 @router.message(F.text.regexp(r"^\d+\.\d+(\.\d+)?$"))
 async def handle_rule(message: Message):
     rule = message.text.strip()
     rule_text = get_rule_by_id(rule)
+    
     if rule_text:
         full_message = f"📌 <b>Пункт {rule}:</b>\n{rule_text}"
         await send_long_message(message, full_message, parse_mode="HTML")
     else:
-        await message.answer(f"❌ Пункт <code>{rule}</code> не знайдено", parse_mode="HTML")
+        await message.answer(f"❌ Пункт ПДР <code>{rule}</code> не знайдено.", parse_mode="HTML")
 
 
 # --- ФУНКЦІЯ ДЛЯ ДОВГИХ ПОВІДОМЛЕНЬ ---
