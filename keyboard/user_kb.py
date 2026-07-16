@@ -259,8 +259,6 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
         for r in replacements_to_remove:
             if cleaned_title.startswith(r):
                 cleaned_title = cleaned_title.replace(r, "", 1).strip()
-        
-        # Зачищаємо символи на початку (коми, двокрапки, тире, пробіли)
         cleaned_title = cleaned_title.strip().lstrip(",:- ").strip()
 
         # 2. КРАСИВЕ ЧИТАБЕЛЬНЕ СКОРОЧЕННЯ (Оптимізовано під ~38 символів)
@@ -349,10 +347,7 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
             "небезпечного вантажу": "НВ", "небезпечних вантажів": "НВ", "небезпечний вантаж": "НВ"
         }
         for long_word, short_word in adr_glossary.items():
-            # Заміна з урахуванням регістру
             cleaned_title = cleaned_title.replace(long_word, short_word).replace(long_word.capitalize(), short_word)
-
-        # Перша літера обов'язково велика
         if cleaned_title:
             cleaned_title = cleaned_title[0].upper() + cleaned_title[1:]
         else:
@@ -360,7 +355,7 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
 
         cleaned_title = cleaned_title.rstrip(",.- ")
 
-        # 4. ФОРМАТУВАННЯ ТЕКСТУ (ІДЕАЛЬНИЙ ЛІМІТ: 38 символів)
+        # 4. ФОРМАТУВАННЯ ТЕКСТУ 
         max_length = 38
         if len(cleaned_title) > max_length:
             button_text = f"⚖️ {cleaned_title[:max_length-3].strip()}..."
