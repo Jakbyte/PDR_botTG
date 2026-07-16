@@ -249,7 +249,7 @@ async def handle_adr_fabulas_page_switch(callback: CallbackQuery):
     fabulas = get_adr_fabulas_by_category(db_category_name)
     
     markup = get_adr_fabulas_keyboard(fabulas, category_idx=cat_idx, page=page)
-    await callback.message.edit_reply_markup(markup)
+    await callback.message.edit_reply_markup(reply_markup=markup)
     await callback.answer()
 
 
