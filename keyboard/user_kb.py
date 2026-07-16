@@ -237,8 +237,7 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
     start_idx = (page - 1) * 5
     end_idx = start_idx + 5
     page_fabulas = fabulas[start_idx:end_idx]
-    
-    # Визначаємо оригінальну назву поточної категорії з БД
+
     category_name = ""
     if 0 <= category_idx < len(SECTIONS_ADR):
         category_name = SECTIONS_ADR[category_idx]
@@ -247,9 +246,7 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
         title = f[1] if isinstance(f, tuple) else f['title']
         fabula_id = f[0] if isinstance(f, tuple) else f['id']
         cleaned_title = title
-
-        # Фрази для вирізання
-        replacements = [
+        replacements_to_remove = [
             "Невірно заповнена ТТН:",
             "Невірно заповнена ТТН",
             "Невірно заповнений",
@@ -257,31 +254,73 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
             "Порушення правил"
         ]
         
-        # Динамічно додаємо довгу назву поточної категорії на видалення
         if category_name:
-            replacements.insert(0, f"{category_name}:")
-            replacements.insert(1, category_name)
+            replacements_to_remove.insert(0, f"{category_name}:")
+            replacements_to_remove.insert(1, category_name)
         
-        # Вирізаємо шаблони з початку назви фабули
-        for r in replacements:
+        for r in replacements_to_remove:
             if cleaned_title.startswith(r):
                 cleaned_title = cleaned_title.replace(r, "", 1).strip()
-        
-        # Зачищаємо залишки двокрапок/тире
-        cleaned_title = cleaned_title.lstrip(":- ").strip()
 
-        # Робимо першу літеру великою
+        cleaned_title = cleaned_title.strip().lstrip(",:- ").strip()
+
         if cleaned_title:
             cleaned_title = cleaned_title[0].upper() + cleaned_title[1:]
         else:
             cleaned_title = title 
             
-        # Форматуємо довжину тексту кнопки (до 38 символів)
+        adr_glossary = {
+
+            "небезпечного вантажу": "НВ",
+            "небезпечних вантажів": "НВ",
+            "небезпечний вантаж": "НВ",
+            "небезпечними вантажами": "НВ",
+            
+            "транспортного засобу-батареї": "ТЗБ",
+            "транспортних засобів-батарей": "ТЗБ",
+            "транспортний засіб-батарея": "ТЗБ",
+            "транспортної одиниці": "ТО",
+            "транспортних одиниць": "ТО",
+            "транспортна одиниця": "ТО",
+            "транспортного засобу": "ТЗ",
+            "транспортних засобів": "ТЗ",
+            "транспортний засіб": "ТЗ",
+            
+            "державного номерного знака": "ДНЗ",
+            "державних номерних знаків": "ДНЗ",
+            "державний номерний знак": "ДНЗ",
+            "дорожнього перевезення небезпечних вантажів": "ДОПНВ",
+            "дорожнє перевезення небезпечних вантажів": "ДОПНВ",
+
+            "багатоелементного газового контейнера": "БЕГК",
+            "багатоелементні газові контейнери": "БЕГК",
+            "багатоелементний газовий контейнер": "БЕГК",
+            "контейнерів середньої вантажопідйомності для масових вантажів": "КСМ",
+            "контейнера середньої вантажопідйомності для масових вантажів": "КСМ",
+            "контейнери середньої вантажопідйомності для масових вантажів": "КСМ",
+            "контейнер середньої вантажопідйомності для масових вантажів": "КСМ",
+            
+            "таблички оранжевого кольору": "ТОК",
+            "табличок оранжевого кольору": "ТОК",
+            "табличкою оранжевого кольору": "ТОК",
+            "ідентифікаційного номера небезпеки": "ІНН",
+            "ідентифікаційний номер небезпеки": "ІНН",
+            "індивідуального захисту": "ІЗ",
+            "відсутній:": "немає",
+            "найменування": "назва"
+        }
+
+        for long_word, short_word in adr_glossary.items():
+            cleaned_title = cleaned_title.replace(long_word, short_word)
+            cleaned_title = cleaned_title.replace(long_word.capitalize(), short_word)
+
+        if cleaned_title:
+            cleaned_title = cleaned_title[0].upper() + cleaned_title[1:]
         max_length = 38
         if len(cleaned_title) > max_length:
-            button_text = f"⚖️ {cleaned_title[:max_length-3].strip()}..."
+            button_text = f"{cleaned_title[:max_length-3].strip()}..."
         else:
-            button_text = f"⚖️ {cleaned_title}"
+            button_text = f"{cleaned_title}"
             
         builder.row(InlineKeyboardButton(
             text=button_text, 
