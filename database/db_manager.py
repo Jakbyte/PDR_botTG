@@ -22,7 +22,7 @@ def get_points_by_section(section_num: str) -> list[dict]:
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "SELECT id, text FROM rules WHERE id LIKE ? ORDER BY CAST(REPLACE(id, ?, '') AS INTEGER)", 
+            "SELECT id, text FROM rules WHERE id LIKE ? ORDER BY CAST(REPLACE(id, ?, '') AS INTEGER)",
             (f"{section_num}.%", f"{section_num}.")
         )
         results = cursor.fetchall()
@@ -32,8 +32,9 @@ def get_points_by_section(section_num: str) -> list[dict]:
             p_text = row[1]
             clean_text = re.sub(r'<[^>]+>', '', p_text)
             first_line = clean_text.split('\n')[0].strip()
-            if len(first_line) > 35:
-                first_line = first_line[:32] + "..."
+            if len(first_line) > 45:
+                cut = first_line[:45].rsplit(' ', 1)[0]
+                first_line = cut + "..."
             points_data.append({
                 "id": p_id,
                 "title": first_line

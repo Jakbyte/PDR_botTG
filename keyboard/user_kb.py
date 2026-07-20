@@ -7,8 +7,13 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 main_menu = ReplyKeyboardMarkup(
     keyboard=[
         [
-            KeyboardButton(text='📘 ПДР України'),
+            KeyboardButton(text='📖 ПДР України'),
             KeyboardButton(text="⚖️ Фабули"),
+        ],
+        [
+            KeyboardButton(text="📚 Кодекси та закони"),
+        ],
+        [
             KeyboardButton(text="ℹ Про бота")
         ]
     ],
@@ -56,6 +61,16 @@ pdr_fabula_submenu = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
+# Підменю "Кодекси та закони"
+codes_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="📘 КУпАП")],
+        [KeyboardButton(text="👮 ЗУ 'Про Національну поліцію'")],
+        [KeyboardButton(text="⬅ Назад до головного")]
+    ],
+    resize_keyboard=True
+)
+
 # Кнопка повернення під час ручного пошуку пункту
 pdr_search_back_menu = ReplyKeyboardMarkup(
     keyboard=[
@@ -64,7 +79,20 @@ pdr_search_back_menu = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
+# Кнопка повернення під час пошуку статті КУпАП
+kupap_search_back_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text='⬅ Назад до Меню')]
+    ],
+    resize_keyboard=True
+)
 
+npu_search_back_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text='⬅ Назад до Меню')]
+    ],
+    resize_keyboard=True
+)
 # --- СПИСКИ ДАНИХ ДЛЯ ІНЛАЙН-КЛАВІАТУР ---
 
 SECTIONS = [
