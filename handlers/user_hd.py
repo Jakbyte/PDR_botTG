@@ -450,10 +450,10 @@ def format_article(article: dict) -> str:
     if notes:
         notes_text = "\n\n".join(f"ℹ️ <i>{n}</i>" for n in notes)
         extra_blocks.append(notes_text)
-
+        
     if extra_blocks:
-        body += "\n\n➖➖➖➖➖➖➖➖➖➖\n\n" + "\n\n➖➖➖➖➖➖➖➖➖➖\n\n".join(extra_blocks)
-
+            extra_text = "\n\n➖➖➖➖➖➖➖➖➖➖\n\n".join(extra_blocks)
+            body = f"{body}\n\n➖➖➖➖➖➖➖➖➖➖\n\n{extra_text}" if body else extra_text
     return (
         f"📖 <b>СТАТТЯ {article['number']}</b>\n"
         f"<i>{title}</i>\n"
