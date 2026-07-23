@@ -27,7 +27,8 @@ from keyboard.user_kb import (
     get_adr_sections_keyboard,
     kupap_search_back_menu,
     npu_search_back_menu,
-    codes_menu
+    codes_menu,
+    gb_fabula_submenu
 )
 
 router = Router()  
@@ -201,11 +202,18 @@ async def process_fabula_pdr(message: Message):
 async def show_other_pdr_fabulas(message: Message):
     await message.answer("📚 Розділ 'Інші фабули ПДР' знаходиться у розробці...")
 
+@router.message(F.text == "🚌 МТЗ")
+async def show_fabula_pdr_mtz(message: Message):
+    await message.answer("🚌 Розділ фабули МТЗ знаходиться у розробці...")
 
 # 6. Меню Фабули ГБ
 @router.message(F.text == "🛡️ Фабули ГБ")
 async def process_fabula_pdr(message: Message):
-    await message.answer("🛡️ Розділ '🛡️ Фабули ГБ' знаходиться у розробці...")
+    await message.answer(
+        "🛡️ <b>Оберіть категорію порушення:</b>",
+        reply_markup = gb_fabula_submenu,
+        parse_mode = "HTML"
+    )
 
 # ==========================================
 # --- НЕБЕЗПЕЧНІ ВАНТАЖІ  ---
@@ -216,8 +224,8 @@ async def process_fabula_pdr(message: Message):
 async def show_adr_categories_message(message: Message):
     await message.answer(
         "☣️ <b>Оберіть категорію порушення:</b>", 
-        reply_markup=get_adr_sections_keyboard(page=1), 
-        parse_mode="HTML"
+        reply_markup = get_adr_sections_keyboard(page=1), 
+        parse_mode = "HTML"
     )
 
 

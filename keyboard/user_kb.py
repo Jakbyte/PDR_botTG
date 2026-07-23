@@ -5,72 +5,89 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # Клавіатура головного меню
 main_menu = ReplyKeyboardMarkup(
-    keyboard=[
+    keyboard = [
         [
-            KeyboardButton(text='📖 ПДР України'),
-            KeyboardButton(text="⚖️ Фабули"),
+            KeyboardButton(text = '📖 ПДР України'),
+            KeyboardButton(text = "⚖️ Фабули"),
         ],
         [
-            KeyboardButton(text="📚 Кодекси та закони"),
+            KeyboardButton(text = "📚 Кодекси та закони"),
         ],
         [
-            KeyboardButton(text="ℹ Про бота")
+            KeyboardButton(text = "ℹ Про бота")
         ]
     ],
-    resize_keyboard=True
+    resize_keyboard = True
 )
 
 # Опції всередині ПДР
 pdr_options_menu = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="🔢 Пошук за номером пункту")],
-        [KeyboardButton(text="📚 Розділи ПДР")],
-        [KeyboardButton(text="⬅ Назад")]
+    keyboard = [
+        [KeyboardButton(text = "🔢 Пошук за номером пункту")],
+        [KeyboardButton(text = "📚 Розділи ПДР")],
+        [KeyboardButton(text = "⬅ Назад")]
     ],
-    resize_keyboard=True
+    resize_keyboard = True
 )
 
 # Меню вибору типу фабул
 fabula_type_menu = ReplyKeyboardMarkup(
-    keyboard=[
+    keyboard = [
         [
-            KeyboardButton(text="🚦 Фабули ПДР"),
-            KeyboardButton(text="🛡️ Фабули ГБ")
+            KeyboardButton(text = "🚦 Фабули ПДР"),
+            KeyboardButton(text = "🛡️ Фабули ГБ")
         ],
         [
-            KeyboardButton(text="🚗 Фабули ДТП")
+            KeyboardButton(text = "🚗 Фабули ДТП")
         ],
         [
-            KeyboardButton(text="⬅ Назад до головного")
+            KeyboardButton(text = "⬅ Назад до головного")
         ]
     ],
-    resize_keyboard=True
+    resize_keyboard = True
 )
 
 # Підменю для розділу "Фабули ПДР"
 pdr_fabula_submenu = ReplyKeyboardMarkup(
-    keyboard=[
+    keyboard = [
         [
-            KeyboardButton(text="☣️ Небезпечні вантажі"),
-            KeyboardButton(text="🚦 Інші порушення ПДР")
+            KeyboardButton(text = "☣️ Небезпечні вантажі"),
+            KeyboardButton(text = "🚌 МТЗ")
         ],
         [
-            KeyboardButton(text="⬅ Назад")
+            KeyboardButton(text = "🚦 Інші порушення ПДР")
+        ],
+        [
+            KeyboardButton(text = "⬅ Назад")
         ]
     ],
-    resize_keyboard=True
+    resize_keyboard = True
 )
 
 # Підменю "Кодекси та закони"
 codes_menu = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="📘 КУпАП")],
-        [KeyboardButton(text="👮 ЗУ 'Про Національну поліцію'")],
-        [KeyboardButton(text="⬅ Назад до головного")]
+    keyboard = [
+        [KeyboardButton(text = "📘 КУпАП")],
+        [KeyboardButton(text = "👮 ЗУ 'Про Національну поліцію'")],
+        [KeyboardButton(text = "⬅ Назад до головного")]
     ],
-    resize_keyboard=True
+    resize_keyboard = True
 )
 
+# Підменю "Фабули ГБ"
+gb_fabula_submenu = ReplyKeyboardMarkup(
+    keyboard = [
+        [
+            KeyboardButton(text = "51"),
+            KeyboardButton(text = "173"),
+            KeyboardButton(text = "173-2")
+        ],
+        [
+            KeyboardButton(text = "⬅ Назад")
+        ]
+    ],
+    resize_keyboard = True 
+)
 # Кнопка повернення під час ручного пошуку пункту
 pdr_search_back_menu = ReplyKeyboardMarkup(
     keyboard=[
