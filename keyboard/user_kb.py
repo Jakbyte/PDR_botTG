@@ -63,6 +63,14 @@ pdr_fabula_submenu = ReplyKeyboardMarkup(
     ],
     resize_keyboard = True
 )
+# Підменю "Інші порушення ПДР"
+other_pdr_fabula_submenu = ReplyKeyboardMarkup(
+    keyboard = [
+        [KeyboardButton(text = "130")],
+        [KeyboardButton(text = "⬅ Назад")]
+    ],
+    resize_keyboard = True
+)
 
 # Підменю "Кодекси та закони"
 codes_menu = ReplyKeyboardMarkup(

@@ -25,6 +25,7 @@ from keyboard.user_kb import (
     get_adr_sections_keyboard,
     gb_fabula_submenu,
     get_mtz_flat_keyboard,
+    other_pdr_fabula_submenu
 )
 
 router = Router()
@@ -138,10 +139,15 @@ async def process_fabula_pdr(message: Message):
 @router.message(F.text == "🚦 Інші порушення ПДР")
 async def show_other_pdr_fabulas(message: Message):
     await message.answer(
-        "📚 Розділ 'Інші фабули ПДР' знаходиться у розробці..."
+        "🚦 <b>Інші порушення ПДР</b>\n\nОберіть пункт:",
+        reply_markup=other_pdr_fabula_submenu,
+        parse_mode="HTML"
     )
 
-
+@router.message(F.text == "130")
+async def pdr_130_fabula(message: Message):
+    await message.answer("📚 Цей розділ знаходиться у розробці...")
+    
 # ==========================================
 # --- ФАБУЛИ ГБ ---
 # ==========================================
