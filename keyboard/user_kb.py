@@ -423,3 +423,80 @@ def get_adr_fabulas_keyboard(fabulas, category_idx: int, page: int = 1):
     builder.row(InlineKeyboardButton(text="🔙 До категорій", callback_data="adr_page:1"))
     
     return builder.as_markup()
+
+# --- ІНЛАЙН-КЛАВІАТУРА МТЗ (плоский список за назвою) ---
+# Відповідність назви фабули МТЗ до емодзі (за принципом ADR_MAP)
+MTZ_EMOJI_MAP = {
+    "пасажири": "🧍",
+    "зупинка": "🚏",
+    "1 водій - 500км": "🛣️",
+    "різні шини": "🛞",
+    "пошкодження шин": "💥",
+    "лисий протектор": "🛞",
+    "розмір шин": "🛞",
+    "болт, гайка": "🔩",
+    "тріщини на склі": "🪟",
+    "обмежена оглядовість": "👁️",
+    "склообмивач": "💧",
+    "ручнік": "🅿️",
+    "ручнік, не замикає важіль": "🅿️",
+    "регулятор гальмівних сил": "🛑",
+    "ресора": "⚙️",
+    "переобладнання сидіння": "💺",
+    "ксеон": "💡",
+    "сині лампочки": "🔵",
+    "тонування розсіювачів": "🕶️",
+    "покажчики, режим робити": "↔️",
+    "молоточки, важіль, кнопки": "🔨",
+    "аварійний вихід": "🚪",
+    "підтікання": "💧",
+    "підтікання, гідропідсилювач": "💧",
+    "ГБО": "⛽",
+    "сигнал": "📢",
+    "спідометр": "⏱️",
+    "регулювання сидіння": "💺",
+    "пошкоджені ремені безпеки": "🔗",
+    "відсутні ремені, підголівники": "💺",
+    "дзеркала заднього виду": "🪞",
+    "бампер, бризковики": "🚙",
+    "замки, двері": "🚪",
+    "ОТК": "✅",
+    "механік, несправний тз": "🔧",
+    "медична довідка, механік": "📋",
+    "відхилення від маршруту": "🗺️",
+    "позагаражне зберігання": "🏠",
+    "повторно, позагаражне зберігання": "🏠",
+    "не пройшов лікаря/механіка": "🩺",
+    "схема маршруту": "🗺️",
+    "станція ОТК": "🏢",
+}
+
+def get_mtz_flat_keyboard(fabulas: list, page: int = 1, per_page: int = 8) -> InlineKeyboardMarkup:
+    total_pages = (len(fabulas) + per_page - 1) // per_page
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    page_fabulas = fabulas[start_idx:end_idx]
+
+    buttons = []
+    for f in page_fabulas:
+        emoji = MTZ_EMOJI_MAP.get(f["name"], "⚖️")
+        btn_text = f["name"]
+        if len(btn_text) > 40:
+            btn_text = btn_text[:37] + "..."
+        buttons.append([InlineKeyboardButton(text=f"{emoji} {btn_text}", callback_data=f"mtzfab_{f['id']}")])
+
+    nav_row = []
+    if page > 1:
+        nav_row.append(InlineKeyboardButton(text="⬅️ Назад", callback_data=f"mtz_page:{page - 1}"))
+    else:
+        nav_row.append(InlineKeyboardButton(text="❌ Перша", callback_data="noop"))
+
+    nav_row.append(InlineKeyboardButton(text=f"📄 {page}/{total_pages}", callback_data="noop"))
+
+    if page < total_pages:
+        nav_row.append(InlineKeyboardButton(text="Вперед ➡️", callback_data=f"mtz_page:{page + 1}"))
+    else:
+        nav_row.append(InlineKeyboardButton(text="❌ Остання", callback_data="noop"))
+
+    buttons.append(nav_row)
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
